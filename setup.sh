@@ -1,0 +1,390 @@
+#!/bin/bash
+
+# ============================================================================
+# IDE Rules Setup Script
+# ============================================================================
+# Downloads and installs IDE rules from the central repository to your project.
+#
+# Usage:
+#   Via curl (remote):
+#     curl -sSL https://raw.githubusercontent.com/dhlotter/toolbox/main/ide-rules/setup.sh | bash
+#
+#   Or clone and run locally:
+#     ./setup.sh
+#
+# ============================================================================
+
+set -e
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+CYAN='\033[0;36m'
+NC='\033[0m' # No Color
+BOLD='\033[1m'
+
+# Configuration
+REPO_URL="https://github.com/dhlotter/ide-rules"
+REPO_RAW="https://raw.githubusercontent.com/dhlotter/ide-rules/main"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}" 2>/dev/null)" && pwd 2>/dev/null || pwd)"
+TEMP_DIR=""
+
+# ===========================================================================
+# Helper Functions
+# ===========================================================================
+
+print_header() {
+    echo ""
+    echo -e "${BOLD}${CYAN}╔════════════════════════════════════════════════════════════════╗${NC}"
+    echo -e "${BOLD}${CYAN}║                    IDE Rules Setup Script                      ║${NC}"
+    echo -e "${BOLD}${CYAN}╚════════════════════════════════════════════════════════════════╝${NC}"
+    echo ""
+}
+
+print_step() {
+    echo -e "${BLUE}▶${NC} $1"
+}
+
+print_success() {
+    echo -e "${GREEN}✓${NC} $1"
+}
+
+print_warning() {
+    echo -e "${YELLOW}⚠${NC} $1"
+}
+
+print_error() {
+    echo -e "${RED}✗${NC} $1"
+}
+
+print_file() {
+    echo -e "  ${CYAN}↳${NC} $1"
+}
+
+cleanup() {
+    if [ -n "$TEMP_DIR" ] && [ -d "$TEMP_DIR" ]; then
+        rm -rf "$TEMP_DIR"
+    fi
+}
+
+trap cleanup EXIT
+
+# ===========================================================================
+# Source Detection
+# ===========================================================================
+
+detect_source() {
+    # Check if we're running from within the ide-rules repo itself
+    if [ -d "$SCRIPT_DIR/rules" ] && [ -d "$SCRIPT_DIR/workflows" ]; then
+        echo "local"
+        return
+    fi
+    
+    # Check if we have the hidden .agent structure (legacy)
+    if [ -d "$SCRIPT_DIR/.agent/rules" ] && [ -d "$SCRIPT_DIR/.agent/workflows" ]; then
+        echo "legacy"
+        return
+    fi
+    
+    echo "remote"
+}
+
+# ===========================================================================
+# Copy Functions
+# ===========================================================================
+
+copy_rules() {
+    local source_dir="$1"
+    local target_dir="$2"
+    local target_name="$3"
+    local count=0
+    
+    mkdir -p "$target_dir"
+    
+    if [ -d "$source_dir" ]; then
+        # Copy files recursively
+        find "$source_dir" -type f -name "*.md" | while read -r file; do
+            local rel_path="${file#$source_dir/}"
+            local dest_file="$target_dir/$rel_path"
+            local dest_dir="$(dirname "$dest_file")"
+            
+            mkdir -p "$dest_dir"
+            cp "$file" "$dest_file"
+            print_file "$rel_path → $target_name"
+        done
+        
+        count=$(find "$source_dir" -type f -name "*.md" | wc -l | tr -d ' ')
+    fi
+    
+    echo "$count"
+}
+
+copy_workflows() {
+    local source_dir="$1"
+    local target_dir="$2"
+    local target_name="$3"
+    local count=0
+    
+    mkdir -p "$target_dir"
+    
+    if [ -d "$source_dir" ]; then
+        for file in "$source_dir"/*.md; do
+            [ -e "$file" ] || continue
+            local filename="$(basename "$file")"
+            cp "$file" "$target_dir/$filename"
+            print_file "$filename → $target_name"
+            ((count++)) || true
+        done
+    fi
+    
+    echo "$count"
+}
+
+# ===========================================================================
+# Setup Functions for Each IDE
+# ===========================================================================
+
+setup_antigravity() {
+    local source_rules="$1"
+    local source_workflows="$2"
+    local target_root="$3"
+    
+    echo ""
+    print_step "Setting up ${BOLD}Antigravity${NC} (.agent/)"
+    
+    local rules_dir="$target_root/.agent/rules"
+    local workflows_dir="$target_root/.agent/workflows"
+    
+    # Create directories
+    mkdir -p "$rules_dir" "$workflows_dir"
+    
+    # Copy rules (with nested structure)
+    if [ -d "$source_rules" ]; then
+        cp -R "$source_rules"/* "$rules_dir/" 2>/dev/null || true
+        local rule_count=$(find "$rules_dir" -type f -name "*.md" | wc -l | tr -d ' ')
+        print_success "Copied $rule_count rule files"
+    fi
+    
+    # Copy workflows
+    if [ -d "$source_workflows" ]; then
+        cp -R "$source_workflows"/* "$workflows_dir/" 2>/dev/null || true
+        local workflow_count=$(find "$workflows_dir" -type f -name "*.md" | wc -l | tr -d ' ')
+        print_success "Copied $workflow_count workflow files"
+    fi
+}
+
+setup_claude() {
+    local source_rules="$1"
+    local source_workflows="$2"
+    local target_root="$3"
+    
+    echo ""
+    print_step "Setting up ${BOLD}Claude${NC} (.claude/)"
+    
+    local rules_dir="$target_root/.claude/rules"
+    local commands_dir="$target_root/.claude/commands"
+    
+    # Create directories
+    mkdir -p "$rules_dir" "$commands_dir"
+    
+    # Copy rules (with nested structure)
+    if [ -d "$source_rules" ]; then
+        cp -R "$source_rules"/* "$rules_dir/" 2>/dev/null || true
+        local rule_count=$(find "$rules_dir" -type f -name "*.md" | wc -l | tr -d ' ')
+        print_success "Copied $rule_count rule files"
+    fi
+    
+    # Copy workflows as commands
+    if [ -d "$source_workflows" ]; then
+        cp -R "$source_workflows"/* "$commands_dir/" 2>/dev/null || true
+        local command_count=$(find "$commands_dir" -type f -name "*.md" | wc -l | tr -d ' ')
+        print_success "Copied $command_count command files"
+    fi
+}
+
+setup_cursor() {
+    local source_rules="$1"
+    local source_workflows="$2"
+    local target_root="$3"
+    
+    echo ""
+    print_step "Setting up ${BOLD}Cursor${NC} (.cursor/)"
+    
+    local rules_dir="$target_root/.cursor/rules"
+    
+    # Create directories
+    mkdir -p "$rules_dir"
+    
+    # Copy rules (with nested structure)
+    if [ -d "$source_rules" ]; then
+        cp -R "$source_rules"/* "$rules_dir/" 2>/dev/null || true
+        local rule_count=$(find "$rules_dir" -type f -name "*.md" | wc -l | tr -d ' ')
+        print_success "Copied $rule_count rule files"
+    fi
+    
+    # Cursor uses .cursorrules file for main rules, but also supports .cursor/rules/
+    print_warning "Note: Cursor also reads from .cursorrules file in project root"
+}
+
+# ===========================================================================
+# Download from Remote
+# ===========================================================================
+
+download_from_github() {
+    local target_dir="$1"
+    
+    print_step "Downloading latest rules from GitHub..."
+    
+    TEMP_DIR=$(mktemp -d)
+    
+    # Check if gh CLI is available
+    if command -v gh &> /dev/null; then
+        print_step "Using GitHub CLI..."
+        if gh repo clone dhlotter/ide-rules "$TEMP_DIR/rules_repo" --depth 1 2>/dev/null; then
+            print_success "Cloned repository successfully"
+            echo "$TEMP_DIR/rules_repo"
+            return 0
+        fi
+    fi
+    
+    # Fall back to git
+    if command -v git &> /dev/null; then
+        print_step "Using git..."
+        if git clone --depth 1 "$REPO_URL.git" "$TEMP_DIR/rules_repo" 2>/dev/null; then
+            print_success "Cloned repository successfully"
+            echo "$TEMP_DIR/rules_repo"
+            return 0
+        fi
+    fi
+    
+    # Fall back to curl for individual files
+    print_warning "Git not available, downloading files individually..."
+    mkdir -p "$TEMP_DIR/rules/reference" "$TEMP_DIR/workflows"
+    
+    # Download rules
+    curl -sSL "$REPO_RAW/rules/king.md" -o "$TEMP_DIR/rules/king.md" 2>/dev/null || true
+    
+    # Download reference rules
+    for ref in api-standards security tech-stack ui-components workflow; do
+        curl -sSL "$REPO_RAW/rules/reference/${ref}.md" -o "$TEMP_DIR/rules/reference/${ref}.md" 2>/dev/null || true
+    done
+    
+    # Download workflows
+    for wf in design featurebase git-commit git-deploy sync-ide-rules troubleshoot; do
+        curl -sSL "$REPO_RAW/workflows/${wf}.md" -o "$TEMP_DIR/workflows/${wf}.md" 2>/dev/null || true
+    done
+    
+    echo "$TEMP_DIR"
+}
+
+# ===========================================================================
+# Main Menu
+# ===========================================================================
+
+show_menu() {
+    echo ""
+    echo -e "${BOLD}Which IDE(s) would you like to set up?${NC}"
+    echo ""
+    echo "  1) Antigravity only  (.agent/)"
+    echo "  2) Claude only       (.claude/)"
+    echo "  3) Cursor only       (.cursor/)"
+    echo "  4) All IDEs          (recommended)"
+    echo "  5) Cancel"
+    echo ""
+    read -p "Enter choice [1-5]: " choice
+    echo "$choice"
+}
+
+# ===========================================================================
+# Main Execution
+# ===========================================================================
+
+main() {
+    print_header
+    
+    # Determine target directory (where to install rules)
+    local target_root="${1:-$(pwd)}"
+    
+    # Resolve to absolute path
+    target_root="$(cd "$target_root" 2>/dev/null && pwd)"
+    
+    echo -e "Target project: ${BOLD}$target_root${NC}"
+    
+    # Detect source
+    local source_type=$(detect_source)
+    local source_dir=""
+    
+    case "$source_type" in
+        local)
+            print_success "Running from local repository"
+            source_dir="$SCRIPT_DIR"
+            ;;
+        legacy)
+            print_warning "Legacy structure detected, using .agent/ as source"
+            source_dir="$SCRIPT_DIR/.agent"
+            ;;
+        remote)
+            source_dir=$(download_from_github "$target_root")
+            ;;
+    esac
+    
+    # Verify source directories exist
+    local rules_src="$source_dir/rules"
+    local workflows_src="$source_dir/workflows"
+    
+    if [ ! -d "$rules_src" ]; then
+        print_error "Rules directory not found: $rules_src"
+        exit 1
+    fi
+    
+    if [ ! -d "$workflows_src" ]; then
+        print_error "Workflows directory not found: $workflows_src"
+        exit 1
+    fi
+    
+    echo ""
+    print_success "Found $(find "$rules_src" -type f -name "*.md" | wc -l | tr -d ' ') rule files"
+    print_success "Found $(ls -1 "$workflows_src"/*.md 2>/dev/null | wc -l | tr -d ' ') workflow files"
+    
+    # Show menu and get choice
+    local choice=$(show_menu)
+    
+    case "$choice" in
+        1)
+            setup_antigravity "$rules_src" "$workflows_src" "$target_root"
+            ;;
+        2)
+            setup_claude "$rules_src" "$workflows_src" "$target_root"
+            ;;
+        3)
+            setup_cursor "$rules_src" "$workflows_src" "$target_root"
+            ;;
+        4)
+            setup_antigravity "$rules_src" "$workflows_src" "$target_root"
+            setup_claude "$rules_src" "$workflows_src" "$target_root"
+            setup_cursor "$rules_src" "$workflows_src" "$target_root"
+            ;;
+        5|*)
+            echo ""
+            print_warning "Setup cancelled."
+            exit 0
+            ;;
+    esac
+    
+    echo ""
+    echo -e "${GREEN}${BOLD}════════════════════════════════════════════════════════════════${NC}"
+    echo -e "${GREEN}${BOLD}                    Setup Complete! 🎉                          ${NC}"
+    echo -e "${GREEN}${BOLD}════════════════════════════════════════════════════════════════${NC}"
+    echo ""
+    echo -e "Rules have been copied to: ${BOLD}$target_root${NC}"
+    echo ""
+    echo -e "${YELLOW}Tip:${NC} To update rules in the future, run this script again."
+    echo -e "     Fixes should be made in the main repository:"
+    echo -e "     ${CYAN}$REPO_URL${NC}"
+    echo ""
+}
+
+# Run main with optional target directory argument
+main "$@"
