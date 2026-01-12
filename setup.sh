@@ -36,31 +36,31 @@ TEMP_DIR=""
 # ===========================================================================
 
 print_header() {
-    echo ""
-    echo -e "${BOLD}${CYAN}╔════════════════════════════════════════════════════════════════╗${NC}"
-    echo -e "${BOLD}${CYAN}║                    IDE Rules Setup Script                      ║${NC}"
-    echo -e "${BOLD}${CYAN}╚════════════════════════════════════════════════════════════════╝${NC}"
-    echo ""
+    echo "" >&2
+    echo -e "${BOLD}${CYAN}╔════════════════════════════════════════════════════════════════╗${NC}" >&2
+    echo -e "${BOLD}${CYAN}║                    IDE Rules Setup Script                      ║${NC}" >&2
+    echo -e "${BOLD}${CYAN}╚════════════════════════════════════════════════════════════════╝${NC}" >&2
+    echo "" >&2
 }
 
 print_step() {
-    echo -e "${BLUE}▶${NC} $1"
+    echo -e "${BLUE}▶${NC} $1" >&2
 }
 
 print_success() {
-    echo -e "${GREEN}✓${NC} $1"
+    echo -e "${GREEN}✓${NC} $1" >&2
 }
 
 print_warning() {
-    echo -e "${YELLOW}⚠${NC} $1"
+    echo -e "${YELLOW}⚠${NC} $1" >&2
 }
 
 print_error() {
-    echo -e "${RED}✗${NC} $1"
+    echo -e "${RED}✗${NC} $1" >&2
 }
 
 print_file() {
-    echo -e "  ${CYAN}↳${NC} $1"
+    echo -e "  ${CYAN}↳${NC} $1" >&2
 }
 
 cleanup() {
@@ -151,7 +151,7 @@ setup_antigravity() {
     local source_workflows="$2"
     local target_root="$3"
     
-    echo ""
+    echo "" >&2
     print_step "Setting up ${BOLD}Antigravity${NC} (.agent/)"
     
     local rules_dir="$target_root/.agent/rules"
@@ -180,7 +180,7 @@ setup_claude() {
     local source_workflows="$2"
     local target_root="$3"
     
-    echo ""
+    echo "" >&2
     print_step "Setting up ${BOLD}Claude${NC} (.claude/)"
     
     local rules_dir="$target_root/.claude/rules"
@@ -209,7 +209,7 @@ setup_cursor() {
     local source_workflows="$2"
     local target_root="$3"
     
-    echo ""
+    echo "" >&2
     print_step "Setting up ${BOLD}Cursor${NC} (.cursor/)"
     
     local rules_dir="$target_root/.cursor/rules"
@@ -284,15 +284,15 @@ download_from_github() {
 # ===========================================================================
 
 show_menu() {
-    echo ""
-    echo -e "${BOLD}Which IDE(s) would you like to set up?${NC}"
-    echo ""
-    echo "  1) Antigravity only  (.agent/)"
-    echo "  2) Claude only       (.claude/)"
-    echo "  3) Cursor only       (.cursor/)"
-    echo "  4) All IDEs          (recommended)"
-    echo "  5) Cancel"
-    echo ""
+    echo "" >&2
+    echo -e "${BOLD}Which IDE(s) would you like to set up?${NC}" >&2
+    echo "" >&2
+    echo "  1) Antigravity only  (.agent/)" >&2
+    echo "  2) Claude only       (.claude/)" >&2
+    echo "  3) Cursor only       (.cursor/)" >&2
+    echo "  4) All IDEs          (recommended)" >&2
+    echo "  5) Cancel" >&2
+    echo "" >&2
     read -p "Enter choice [1-5]: " choice
     echo "$choice"
 }
@@ -310,7 +310,7 @@ main() {
     # Resolve to absolute path
     target_root="$(cd "$target_root" 2>/dev/null && pwd)"
     
-    echo -e "Target project: ${BOLD}$target_root${NC}"
+    echo -e "Target project: ${BOLD}$target_root${NC}" >&2
     
     # Detect source
     local source_type=$(detect_source)
@@ -344,7 +344,7 @@ main() {
         exit 1
     fi
     
-    echo ""
+    echo "" >&2
     print_success "Found $(find "$rules_src" -type f -name "*.md" | wc -l | tr -d ' ') rule files"
     print_success "Found $(ls -1 "$workflows_src"/*.md 2>/dev/null | wc -l | tr -d ' ') workflow files"
     
@@ -373,17 +373,17 @@ main() {
             ;;
     esac
     
-    echo ""
-    echo -e "${GREEN}${BOLD}════════════════════════════════════════════════════════════════${NC}"
-    echo -e "${GREEN}${BOLD}                    Setup Complete! 🎉                          ${NC}"
-    echo -e "${GREEN}${BOLD}════════════════════════════════════════════════════════════════${NC}"
-    echo ""
-    echo -e "Rules have been copied to: ${BOLD}$target_root${NC}"
-    echo ""
-    echo -e "${YELLOW}Tip:${NC} To update rules in the future, run this script again."
-    echo -e "     Fixes should be made in the main repository:"
-    echo -e "     ${CYAN}$REPO_URL${NC}"
-    echo ""
+    echo "" >&2
+    echo -e "${GREEN}${BOLD}════════════════════════════════════════════════════════════════${NC}" >&2
+    echo -e "${GREEN}${BOLD}                    Setup Complete! 🎉                          ${NC}" >&2
+    echo -e "${GREEN}${BOLD}════════════════════════════════════════════════════════════════${NC}" >&2
+    echo "" >&2
+    echo -e "Rules have been copied to: ${BOLD}$target_root${NC}" >&2
+    echo "" >&2
+    echo -e "${YELLOW}Tip:${NC} To update rules in the future, run this script again." >&2
+    echo -e "     Fixes should be made in the main repository:" >&2
+    echo -e "     ${CYAN}$REPO_URL${NC}" >&2
+    echo "" >&2
 }
 
 # Run main with optional target directory argument
