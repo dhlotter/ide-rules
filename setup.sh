@@ -7,7 +7,7 @@
 #
 # Usage:
 #   Via curl (remote):
-#     curl -sSL https://raw.githubusercontent.com/dhlotter/toolbox/main/ide-rules/setup.sh | bash
+#     curl -sSL https://raw.githubusercontent.com/dhlotter/ide-rules/main/setup.sh | bash
 #
 #   Or clone and run locally:
 #     ./setup.sh
