@@ -296,25 +296,7 @@ download_from_github() {
 # Main Menu
 # ===========================================================================
 
-show_menu() {
-    echo "" >&2
-    echo -e "${BOLD}Which IDE(s) would you like to set up?${NC}" >&2
-    echo "" >&2
-    echo "  1) Antigravity only  (.agent/)" >&2
-    echo "  2) Claude only       (.claude/)" >&2
-    echo "  3) Cursor only       (.cursor/)" >&2
-    echo "  4) All IDEs          (recommended)" >&2
-    echo "  5) Cancel" >&2
-    echo "" >&2
-    # When piping from curl, stdin is the script content.
-    # We need to explicitly open the terminal for input.
-    if [ -t 0 ]; then
-        read -p "Enter choice [1-5]: " choice
-    else
-        read -p "Enter choice [1-5]: " choice < /dev/tty
-    fi
-    echo "$choice"
-}
+
 
 # ===========================================================================
 # Main Execution
@@ -367,30 +349,10 @@ main() {
     print_success "Found $(find "$rules_src" -type f -name "*.md" | wc -l | tr -d ' ') rule files"
     print_success "Found $(ls -1 "$workflows_src"/*.md 2>/dev/null | wc -l | tr -d ' ') workflow files"
     
-    # Show menu and get choice
-    local choice=$(show_menu)
-    
-    case "$choice" in
-        1)
-            setup_antigravity "$rules_src" "$workflows_src" "$target_root"
-            ;;
-        2)
-            setup_claude "$rules_src" "$workflows_src" "$target_root"
-            ;;
-        3)
-            setup_cursor "$rules_src" "$workflows_src" "$target_root"
-            ;;
-        4)
-            setup_antigravity "$rules_src" "$workflows_src" "$target_root"
-            setup_claude "$rules_src" "$workflows_src" "$target_root"
-            setup_cursor "$rules_src" "$workflows_src" "$target_root"
-            ;;
-        5|*)
-            echo ""
-            print_warning "Setup cancelled."
-            exit 0
-            ;;
-    esac
+    # Default to installing for all IDEs
+    setup_antigravity "$rules_src" "$workflows_src" "$target_root"
+    setup_claude "$rules_src" "$workflows_src" "$target_root"
+    setup_cursor "$rules_src" "$workflows_src" "$target_root"
     
     echo "" >&2
     echo -e "${GREEN}${BOLD}════════════════════════════════════════════════════════════════${NC}" >&2
