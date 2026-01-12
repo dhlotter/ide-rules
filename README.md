@@ -9,16 +9,6 @@ A centralized repository for AI IDE rules and workflows. Pull-only design for si
 curl -sSL https://raw.githubusercontent.com/dhlotter/ide-rules/main/setup.sh | bash
 ```
 
-Or if you have the repo cloned:
-
-```bash
-# Clone the ide-rules repo
-gh repo clone dhlotter/ide-rules ~/ide-rules
-
-# Run setup from your project directory
-~/ide-rules/setup.sh
-```
-
 ## What It Does
 
 The setup script will:

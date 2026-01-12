@@ -242,20 +242,33 @@ download_from_github() {
     # Check if gh CLI is available
     if command -v gh &> /dev/null; then
         print_step "Using GitHub CLI..."
-        if gh repo clone dhlotter/ide-rules "$TEMP_DIR/rules_repo" --depth 1 2>/dev/null; then
-            print_success "Cloned repository successfully"
-            echo "$TEMP_DIR/rules_repo"
-            return 0
+        if gh repo clone dhlotter/ide-rules "$TEMP_DIR/rules_repo" --depth 1 2>&1 >&2; then
+            if [ -d "$TEMP_DIR/rules_repo" ]; then
+                print_success "Cloned repository successfully"
+                echo "$TEMP_DIR/rules_repo"
+                return 0
+            else
+                print_warning "Clone succeeded but directory not found"
+            fi
+        else
+            print_warning "GitHub CLI clone failed, trying git..."
         fi
     fi
     
     # Fall back to git
     if command -v git &> /dev/null; then
         print_step "Using git..."
-        if git clone --depth 1 "$REPO_URL.git" "$TEMP_DIR/rules_repo" 2>/dev/null; then
-            print_success "Cloned repository successfully"
-            echo "$TEMP_DIR/rules_repo"
-            return 0
+        if git clone --depth 1 "$REPO_URL.git" "$TEMP_DIR/rules_repo" 2>&1 >&2; then
+            if [ -d "$TEMP_DIR/rules_repo" ]; then
+                print_success "Cloned repository successfully"
+                echo "$TEMP_DIR/rules_repo"
+                return 0
+            else
+                print_error "Git clone succeeded but directory not found"
+                exit 1
+            fi
+        else
+            print_warning "Git clone failed, falling back to curl..."
         fi
     fi
     
