@@ -242,7 +242,7 @@ download_from_github() {
     # Check if gh CLI is available
     if command -v gh &> /dev/null; then
         print_step "Using GitHub CLI..."
-        if gh repo clone dhlotter/ide-rules "$TEMP_DIR/rules_repo" --depth 1 2>&1 >&2; then
+        if gh repo clone dhlotter/ide-rules "$TEMP_DIR/rules_repo" --depth 1 &>/dev/null; then
             if [ -d "$TEMP_DIR/rules_repo" ]; then
                 print_success "Cloned repository successfully"
                 echo "$TEMP_DIR/rules_repo"
@@ -258,7 +258,7 @@ download_from_github() {
     # Fall back to git
     if command -v git &> /dev/null; then
         print_step "Using git..."
-        if git clone --depth 1 "$REPO_URL.git" "$TEMP_DIR/rules_repo" 2>&1 >&2; then
+        if git clone --depth 1 "$REPO_URL.git" "$TEMP_DIR/rules_repo" &>/dev/null; then
             if [ -d "$TEMP_DIR/rules_repo" ]; then
                 print_success "Cloned repository successfully"
                 echo "$TEMP_DIR/rules_repo"
