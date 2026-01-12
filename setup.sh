@@ -306,7 +306,13 @@ show_menu() {
     echo "  4) All IDEs          (recommended)" >&2
     echo "  5) Cancel" >&2
     echo "" >&2
-    read -p "Enter choice [1-5]: " choice </dev/tty
+    # When piping from curl, stdin is the script content.
+    # We need to explicitly open the terminal for input.
+    if [ -t 0 ]; then
+        read -p "Enter choice [1-5]: " choice
+    else
+        read -p "Enter choice [1-5]: " choice < /dev/tty
+    fi
     echo "$choice"
 }
 
