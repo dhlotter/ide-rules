@@ -46,28 +46,10 @@ ide-rules/
 └── README.md
 ```
 
-## Updating Rules
-
-**In a project:**
-```bash
-# Re-run the setup script to pull latest
-~/ide-rules/setup.sh
-```
-
 **Fixing a bug or adding a rule:**
 1. Make changes in this repository (`dhlotter/ide-rules/`)
 2. Commit and push
 3. Re-run setup in your projects
-
-## Design Philosophy
-
-| ✅ Pros | ⚠️ Trade-offs |
-|---------|---------------|
-| Dead simple — just run one command | Pull-only (fix bugs in main repo) |
-| No Git complexity (submodules, subtrees) | No automatic sync (must re-run) |
-| Works on any project instantly | Files are copies, not linked |
-| Single source of truth | |
-| Can run from anywhere | |
 
 ## Rule Hierarchy
 
