@@ -306,7 +306,7 @@ show_menu() {
     echo "  4) All IDEs          (recommended)" >&2
     echo "  5) Cancel" >&2
     echo "" >&2
-    read -p "Enter choice [1-5]: " choice
+    read -p "Enter choice [1-5]: " choice </dev/tty
     echo "$choice"
 }
 
