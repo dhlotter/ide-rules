@@ -198,32 +198,12 @@ setup_claude() {
         local command_count=$(find "$commands_dir" -type f -name "*.md" | wc -l | tr -d ' ')
         print_success "Copied $command_count command files"
     fi
+
+    # Note about Cursor compatibility
+    print_warning "Note: Cursor also reads rules from .claude/ and the .cursorrules file"
 }
 
-setup_cursor() {
-    local source_rules="$1"
-    local source_workflows="$2"
-    local target_root="$3"
-    
-    echo "" >&2
-    print_step "Setting up ${BOLD}Cursor${NC} (.cursor/)"
-    
-    local rules_dir="$target_root/.cursor/rules"
-    
-    # Clear existing directories to ensure a clean sync
-    rm -rf "$rules_dir"
-    mkdir -p "$rules_dir"
-    
-    # Copy rules (with nested structure)
-    if [ -d "$source_rules" ]; then
-        cp -R "$source_rules"/* "$rules_dir/" 2>/dev/null || true
-        local rule_count=$(find "$rules_dir" -type f -name "*.md" | wc -l | tr -d ' ')
-        print_success "Copied $rule_count rule files"
-    fi
-    
-    # Cursor uses .cursorrules file for main rules, but also supports .cursor/rules/
-    print_warning "Note: Cursor also reads from .cursorrules file in project root"
-}
+
 
 # ===========================================================================
 # Download from Remote
@@ -346,10 +326,15 @@ main() {
     print_success "Found $(find "$rules_src" -type f -name "*.md" | wc -l | tr -d ' ') rule files"
     print_success "Found $(ls -1 "$workflows_src"/*.md 2>/dev/null | wc -l | tr -d ' ') workflow files"
     
+    # Clear old .cursor directory if it exists (consolidating to .claude)
+    if [ -d "$target_root/.cursor" ]; then
+        rm -rf "$target_root/.cursor"
+        print_warning "Removed legacy .cursor directory (consolidated to .claude)"
+    fi
+
     # Default to installing for all IDEs
     setup_antigravity "$rules_src" "$workflows_src" "$target_root"
     setup_claude "$rules_src" "$workflows_src" "$target_root"
-    setup_cursor "$rules_src" "$workflows_src" "$target_root"
     
     echo "" >&2
     echo -e "${GREEN}${BOLD}════════════════════════════════════════════════════════════════${NC}" >&2
