@@ -5,7 +5,6 @@ A centralized repository for AI IDE rules and workflows. Pull-only design for si
 ## Quick Start
 
 ```bash
-# From any project directory
 curl -sSL https://raw.githubusercontent.com/dhlotter/ide-rules/main/setup.sh | bash
 ```
 
