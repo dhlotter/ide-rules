@@ -77,14 +77,8 @@ trap cleanup EXIT
 
 detect_source() {
     # Check if we're running from within the ide-rules repo itself
-    if [ -d "$SCRIPT_DIR/rules" ] && [ -d "$SCRIPT_DIR/workflows" ]; then
+    if [ -d "$SCRIPT_DIR/rules" ] && [ -d "$SCRIPT_DIR/workflows" ] && [ -f "$SCRIPT_DIR/setup.sh" ]; then
         echo "local"
-        return
-    fi
-    
-    # Check if we have the hidden .agent structure (legacy)
-    if [ -d "$SCRIPT_DIR/.agent/rules" ] && [ -d "$SCRIPT_DIR/.agent/workflows" ]; then
-        echo "legacy"
         return
     fi
     
@@ -157,7 +151,8 @@ setup_antigravity() {
     local rules_dir="$target_root/.agent/rules"
     local workflows_dir="$target_root/.agent/workflows"
     
-    # Create directories
+    # Clear existing directories to ensure a clean sync
+    rm -rf "$rules_dir" "$workflows_dir"
     mkdir -p "$rules_dir" "$workflows_dir"
     
     # Copy rules (with nested structure)
@@ -186,7 +181,8 @@ setup_claude() {
     local rules_dir="$target_root/.claude/rules"
     local commands_dir="$target_root/.claude/commands"
     
-    # Create directories
+    # Clear existing directories to ensure a clean sync
+    rm -rf "$rules_dir" "$commands_dir"
     mkdir -p "$rules_dir" "$commands_dir"
     
     # Copy rules (with nested structure)
@@ -214,7 +210,8 @@ setup_cursor() {
     
     local rules_dir="$target_root/.cursor/rules"
     
-    # Create directories
+    # Clear existing directories to ensure a clean sync
+    rm -rf "$rules_dir"
     mkdir -p "$rules_dir"
     
     # Copy rules (with nested structure)
@@ -285,7 +282,7 @@ download_from_github() {
     done
     
     # Download workflows
-    for wf in design featurebase git-commit git-deploy sync-ide-rules troubleshoot; do
+    for wf in design featurebase git-commit git-deploy troubleshoot; do
         curl -sSL "$REPO_RAW/workflows/${wf}.md" -o "$TEMP_DIR/workflows/${wf}.md" 2>/dev/null || true
     done
     
