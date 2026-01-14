@@ -10,7 +10,32 @@ This command guides the agent through a safe commit process without running pre-
 Before proceeding to commit, the agent MUST:
 
 ### 1. Identify and Confirm Branch
+The agent should intelligently detect the target branch:
+
+**Smart Branch Detection:**
+- Check the current branch using `git branch --show-current` or `git rev-parse --abbrev-ref HEAD`.
+- Check for uncommitted changes using `git status --porcelain`.
+- If there are uncommitted changes on the current branch, check for other branches with recent activity:
+  - List branches with commits in the last 7 days: `git for-each-ref --sort=-committerdate refs/heads/ --format='%(refname:short) %(committerdate:relative)' --count=10`
+  - Check if multiple branches have been actively worked on recently.
+
+**Branch Selection Logic:**
+- **Auto-select** the current branch if:
+  - There are uncommitted changes on the current branch, AND
+  - No other branches have commits within the last 7 days, OR
+  - Only one branch shows recent activity (commits in last 7 days).
+- **Present options** to the user if:
+  - Multiple branches show recent activity, OR
+  - The current branch has no uncommitted changes, OR
+  - The user explicitly requests branch selection.
+
+**When Auto-selecting:**
+- Inform the user: "Detected single active branch: [branch-name]. Proceeding with this branch."
+- Proceed directly to commit message proposal.
+
+**When Presenting Options:**
 - List available local branches using `git branch`.
+- Show recent activity for each branch (last commit date).
 - Present the list to the user.
 - **WAIT** for the user to specify or confirm the target branch.
 
