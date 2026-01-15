@@ -171,16 +171,24 @@ setup_claude() {
     local claude_root="$target_root/.claude"
     local rules_dir="$claude_root/rules"
     local commands_dir="$claude_root/commands"
+    local skills_dir="$claude_root/skills"
     local agent_target="$target_root/.agent"
 
     # Clear existing directories to ensure a clean sync
-    rm -rf "$rules_dir" "$commands_dir"
+    rm -rf "$rules_dir" "$commands_dir" "$skills_dir"
     mkdir -p "$claude_root"
 
     if [ -d "$agent_target/rules" ] && [ -d "$agent_target/workflows" ]; then
         ln -s "../.agent/rules" "$rules_dir"
         ln -s "../.agent/workflows" "$commands_dir"
-        print_success "Linked .claude/ to .agent/ for rules and commands"
+        
+        # Link skills if it exists
+        if [ -d "$agent_target/skills" ]; then
+            ln -s "../.agent/skills" "$skills_dir"
+            print_success "Linked .claude/ to .agent/ for rules, commands, and skills"
+        else
+            print_success "Linked .claude/ to .agent/ for rules and commands"
+        fi
     else
         print_error "Could not create symlinks: .agent directory not properly set up"
         exit 1
