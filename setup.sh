@@ -262,19 +262,19 @@ download_from_github() {
     
     # Fall back to curl for individual files
     print_warning "Git not available, downloading files individually..."
-    mkdir -p "$TEMP_DIR/rules/reference" "$TEMP_DIR/workflows"
+    mkdir -p "$TEMP_DIR/.agent/rules/reference" "$TEMP_DIR/.agent/workflows"
     
     # Download rules
-    curl -sSL "$REPO_RAW/rules/king.md" -o "$TEMP_DIR/rules/king.md" 2>/dev/null || true
+    curl -sSL "$REPO_RAW/.agent/rules/king.md" -o "$TEMP_DIR/.agent/rules/king.md" 2>/dev/null || true
     
     # Download reference rules
     for ref in api-standards security tech-stack ui-components workflow; do
-        curl -sSL "$REPO_RAW/rules/reference/${ref}.md" -o "$TEMP_DIR/rules/reference/${ref}.md" 2>/dev/null || true
+        curl -sSL "$REPO_RAW/.agent/rules/reference/${ref}.md" -o "$TEMP_DIR/.agent/rules/reference/${ref}.md" 2>/dev/null || true
     done
     
     # Download workflows
     for wf in design featurebase git-commit git-deploy troubleshoot; do
-        curl -sSL "$REPO_RAW/workflows/${wf}.md" -o "$TEMP_DIR/workflows/${wf}.md" 2>/dev/null || true
+        curl -sSL "$REPO_RAW/.agent/workflows/${wf}.md" -o "$TEMP_DIR/.agent/workflows/${wf}.md" 2>/dev/null || true
     done
     
     echo "$TEMP_DIR"
