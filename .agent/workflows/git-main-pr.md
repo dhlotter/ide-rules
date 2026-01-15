@@ -1,10 +1,10 @@
 ---
-description: Create a pull request from dev branch to main branch.
+description: Create a pull request from dev branch to main branch and merge it.
 ---
 
 # Git Main PR Workflow
 
-This command guides the agent through creating a pull request from the `dev` branch to the `main` branch. This workflow assumes that changes have already been committed and pushed to `dev`.
+This command guides the agent through creating a pull request from the `dev` branch to the `main` branch and merging it. This workflow assumes that changes have already been committed and pushed to `dev`.
 
 ## Phase 1: Pre-flight Verification
 Before creating the PR, the agent MUST:
@@ -57,9 +57,39 @@ When creating the PR, include:
 - Any breaking changes or migration notes
 - Testing notes or verification steps
 
-## Phase 4: Final Verification
-1. Confirm with the user that the PR has been created.
-2. Provide the PR URL or number for reference.
-3. Wait for the production/preview build to complete (if CI/CD is configured).
-4. Confirm with the user that the changes are live and functioning correctly (if applicable).
-5. Remind the user to review and merge the PR when ready.
+## Phase 4: Wait for CI/CD (if applicable)
+- If CI/CD is configured, wait for the production/preview build to complete.
+- Check PR status: `gh pr view [PR_NUMBER]` (if using GitHub CLI) or check the PR page.
+- Ensure all checks pass before proceeding to merge.
+
+## Phase 5: Merge PR
+The agent should merge the PR using one of these methods (in order of preference):
+
+### Method 1: GitHub CLI (gh)
+If `gh` CLI is available:
+1. Merge the PR: `gh pr merge [PR_NUMBER] --merge` (or `--squash` or `--rebase` based on project preferences)
+2. If merge method is not specified, use `--merge` as default.
+3. Confirm the merge was successful.
+
+### Method 2: Manual Merge Instructions
+If `gh` CLI is not available or merge fails:
+1. Provide the PR URL to the user.
+2. Instruct them to:
+   - Navigate to the PR on GitHub
+   - Click "Merge pull request"
+   - Confirm the merge
+   - Optionally delete the dev branch if prompted
+
+### Method 3: Direct Git Merge (fallback)
+If PR creation failed but we still need to merge:
+1. Switch to main branch: `git checkout main` or `git switch main`
+2. Pull latest: `git pull origin main`
+3. Merge dev into main: `git merge origin/dev` or `git merge dev`
+4. Push to main: `git push origin main`
+5. **Note**: This bypasses PR review, so only use if PR creation failed and user explicitly approves.
+
+## Phase 6: Final Verification
+1. Confirm with the user that the PR has been merged into main.
+2. Verify main branch is updated: `git fetch origin && git log origin/main --oneline -5`
+3. Confirm with the user that the changes are live and functioning correctly (if applicable).
+4. Optionally, remind the user to pull the latest main branch: `git checkout main && git pull origin main`
