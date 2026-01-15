@@ -82,11 +82,6 @@ detect_source() {
         return
     fi
 
-    if [ -d "$SCRIPT_DIR/rules" ] && [ -d "$SCRIPT_DIR/workflows" ] && [ -f "$SCRIPT_DIR/setup.sh" ]; then
-        echo "local"
-        return
-    fi
-
     echo "remote"
 }
 
@@ -313,10 +308,6 @@ main() {
     case "$source_type" in
         local_agent)
             print_success "Running from local repository (.agent/ source)"
-            source_dir="$SCRIPT_DIR/.agent"
-            ;;
-        local)
-            print_success "Running from local repository"
             source_dir="$SCRIPT_DIR"
             ;;
         remote)
@@ -325,8 +316,8 @@ main() {
     esac
     
     # Verify source directories exist
-    local rules_src="$source_dir/rules"
-    local workflows_src="$source_dir/workflows"
+    local rules_src="$source_dir/.agent/rules"
+    local workflows_src="$source_dir/.agent/workflows"
     
     if [ ! -d "$rules_src" ]; then
         print_error "Rules directory not found: $rules_src"
