@@ -141,39 +141,29 @@ copy_workflows() {
 # ===========================================================================
 
 setup_antigravity() {
-    local source_rules="$1"
-    local source_workflows="$2"
-    local target_root="$3"
+    local agent_src="$1"
+    local target_root="$2"
     
     echo "" >&2
     print_step "Setting up ${BOLD}Antigravity${NC} (.agent/)"
     
-    local rules_dir="$target_root/.agent/rules"
-    local workflows_dir="$target_root/.agent/workflows"
+    local agent_target="$target_root/.agent"
     
-    # Clear existing directories to ensure a clean sync
-    rm -rf "$rules_dir" "$workflows_dir"
-    mkdir -p "$rules_dir" "$workflows_dir"
+    # Clear existing .agent directory to ensure a clean sync
+    rm -rf "$agent_target"
+    mkdir -p "$agent_target"
     
-    # Copy rules (with nested structure)
-    if [ -d "$source_rules" ]; then
-        cp -R "$source_rules"/* "$rules_dir/" 2>/dev/null || true
-        local rule_count=$(find "$rules_dir" -type f -name "*.md" | wc -l | tr -d ' ')
-        print_success "Copied $rule_count rule files"
-    fi
-    
-    # Copy workflows
-    if [ -d "$source_workflows" ]; then
-        cp -R "$source_workflows"/* "$workflows_dir/" 2>/dev/null || true
-        local workflow_count=$(find "$workflows_dir" -type f -name "*.md" | wc -l | tr -d ' ')
-        print_success "Copied $workflow_count workflow files"
+    # Copy entire .agent directory
+    if [ -d "$agent_src" ]; then
+        cp -R "$agent_src"/* "$agent_target/" 2>/dev/null || true
+        local file_count=$(find "$agent_target" -type f -name "*.md" | wc -l | tr -d ' ')
+        print_success "Copied $file_count files"
     fi
 }
 
 setup_claude() {
-    local source_rules="$1"
-    local source_workflows="$2"
-    local target_root="$3"
+    local agent_src="$1"
+    local target_root="$2"
     
     echo "" >&2
     print_step "Setting up ${BOLD}Claude${NC} (.claude/)"
@@ -181,33 +171,19 @@ setup_claude() {
     local claude_root="$target_root/.claude"
     local rules_dir="$claude_root/rules"
     local commands_dir="$claude_root/commands"
-    local agent_rules="$target_root/.agent/rules"
-    local agent_workflows="$target_root/.agent/workflows"
+    local agent_target="$target_root/.agent"
 
     # Clear existing directories to ensure a clean sync
     rm -rf "$rules_dir" "$commands_dir"
     mkdir -p "$claude_root"
 
-    if [ -d "$agent_rules" ] && [ -d "$agent_workflows" ]; then
+    if [ -d "$agent_target/rules" ] && [ -d "$agent_target/workflows" ]; then
         ln -s "../.agent/rules" "$rules_dir"
         ln -s "../.agent/workflows" "$commands_dir"
         print_success "Linked .claude/ to .agent/ for rules and commands"
     else
-        mkdir -p "$rules_dir" "$commands_dir"
-
-        # Copy rules (with nested structure)
-        if [ -d "$source_rules" ]; then
-            cp -R "$source_rules"/* "$rules_dir/" 2>/dev/null || true
-            local rule_count=$(find "$rules_dir" -type f -name "*.md" | wc -l | tr -d ' ')
-            print_success "Copied $rule_count rule files"
-        fi
-
-        # Copy workflows as commands
-        if [ -d "$source_workflows" ]; then
-            cp -R "$source_workflows"/* "$commands_dir/" 2>/dev/null || true
-            local command_count=$(find "$commands_dir" -type f -name "*.md" | wc -l | tr -d ' ')
-            print_success "Copied $command_count command files"
-        fi
+        print_error "Could not create symlinks: .agent directory not properly set up"
+        exit 1
     fi
 
     # Note about Cursor compatibility
@@ -315,23 +291,16 @@ main() {
             ;;
     esac
     
-    # Verify source directories exist
-    local rules_src="$source_dir/.agent/rules"
-    local workflows_src="$source_dir/.agent/workflows"
+    # Verify .agent directory exists
+    local agent_src="$source_dir/.agent"
     
-    if [ ! -d "$rules_src" ]; then
-        print_error "Rules directory not found: $rules_src"
-        exit 1
-    fi
-    
-    if [ ! -d "$workflows_src" ]; then
-        print_error "Workflows directory not found: $workflows_src"
+    if [ ! -d "$agent_src" ]; then
+        print_error ".agent directory not found: $agent_src"
         exit 1
     fi
     
     echo "" >&2
-    print_success "Found $(find "$rules_src" -type f -name "*.md" | wc -l | tr -d ' ') rule files"
-    print_success "Found $(ls -1 "$workflows_src"/*.md 2>/dev/null | wc -l | tr -d ' ') workflow files"
+    print_success "Found .agent directory with $(find "$agent_src" -type f -name "*.md" | wc -l | tr -d ' ') files"
     
     # Clear old .cursor directory if it exists (consolidating to .claude)
     if [ -d "$target_root/.cursor" ]; then
@@ -340,8 +309,8 @@ main() {
     fi
 
     # Default to installing for all IDEs
-    setup_antigravity "$rules_src" "$workflows_src" "$target_root"
-    setup_claude "$rules_src" "$workflows_src" "$target_root"
+    setup_antigravity "$agent_src" "$target_root"
+    setup_claude "$agent_src" "$target_root"
     
     echo "" >&2
     echo -e "${GREEN}${BOLD}════════════════════════════════════════════════════════════════${NC}" >&2
