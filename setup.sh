@@ -77,11 +77,16 @@ trap cleanup EXIT
 
 detect_source() {
     # Check if we're running from within the ide-rules repo itself
+    if [ -d "$SCRIPT_DIR/.agent/rules" ] && [ -d "$SCRIPT_DIR/.agent/workflows" ] && [ -f "$SCRIPT_DIR/setup.sh" ]; then
+        echo "local_agent"
+        return
+    fi
+
     if [ -d "$SCRIPT_DIR/rules" ] && [ -d "$SCRIPT_DIR/workflows" ] && [ -f "$SCRIPT_DIR/setup.sh" ]; then
         echo "local"
         return
     fi
-    
+
     echo "remote"
 }
 
@@ -178,25 +183,36 @@ setup_claude() {
     echo "" >&2
     print_step "Setting up ${BOLD}Claude${NC} (.claude/)"
     
-    local rules_dir="$target_root/.claude/rules"
-    local commands_dir="$target_root/.claude/commands"
-    
+    local claude_root="$target_root/.claude"
+    local rules_dir="$claude_root/rules"
+    local commands_dir="$claude_root/commands"
+    local agent_rules="$target_root/.agent/rules"
+    local agent_workflows="$target_root/.agent/workflows"
+
     # Clear existing directories to ensure a clean sync
     rm -rf "$rules_dir" "$commands_dir"
-    mkdir -p "$rules_dir" "$commands_dir"
-    
-    # Copy rules (with nested structure)
-    if [ -d "$source_rules" ]; then
-        cp -R "$source_rules"/* "$rules_dir/" 2>/dev/null || true
-        local rule_count=$(find "$rules_dir" -type f -name "*.md" | wc -l | tr -d ' ')
-        print_success "Copied $rule_count rule files"
-    fi
-    
-    # Copy workflows as commands
-    if [ -d "$source_workflows" ]; then
-        cp -R "$source_workflows"/* "$commands_dir/" 2>/dev/null || true
-        local command_count=$(find "$commands_dir" -type f -name "*.md" | wc -l | tr -d ' ')
-        print_success "Copied $command_count command files"
+    mkdir -p "$claude_root"
+
+    if [ -d "$agent_rules" ] && [ -d "$agent_workflows" ]; then
+        ln -s "../.agent/rules" "$rules_dir"
+        ln -s "../.agent/workflows" "$commands_dir"
+        print_success "Linked .claude/ to .agent/ for rules and commands"
+    else
+        mkdir -p "$rules_dir" "$commands_dir"
+
+        # Copy rules (with nested structure)
+        if [ -d "$source_rules" ]; then
+            cp -R "$source_rules"/* "$rules_dir/" 2>/dev/null || true
+            local rule_count=$(find "$rules_dir" -type f -name "*.md" | wc -l | tr -d ' ')
+            print_success "Copied $rule_count rule files"
+        fi
+
+        # Copy workflows as commands
+        if [ -d "$source_workflows" ]; then
+            cp -R "$source_workflows"/* "$commands_dir/" 2>/dev/null || true
+            local command_count=$(find "$commands_dir" -type f -name "*.md" | wc -l | tr -d ' ')
+            print_success "Copied $command_count command files"
+        fi
     fi
 
     # Note about Cursor compatibility
@@ -295,13 +311,13 @@ main() {
     local source_dir=""
     
     case "$source_type" in
+        local_agent)
+            print_success "Running from local repository (.agent/ source)"
+            source_dir="$SCRIPT_DIR/.agent"
+            ;;
         local)
             print_success "Running from local repository"
             source_dir="$SCRIPT_DIR"
-            ;;
-        legacy)
-            print_warning "Legacy structure detected, using .agent/ as source"
-            source_dir="$SCRIPT_DIR/.agent"
             ;;
         remote)
             source_dir=$(download_from_github "$target_root")
