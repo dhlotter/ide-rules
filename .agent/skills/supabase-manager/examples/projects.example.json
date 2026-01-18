@@ -1,0 +1,12 @@
+{
+    "projects": [
+        {
+            "name": "example-project",
+            "ref": "abcdefghijklmnop",
+            "path": "/path/to/your/project",
+            "url": "https://abcdefghijklmnop.supabase.co",
+            "active": true
+        }
+    ],
+    "active_project": "example-project"
+}

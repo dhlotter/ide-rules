@@ -1,0 +1,27 @@
+# Virtual environment
+venv/
+__pycache__/
+*.pyc
+
+# Configuration files with sensitive data
+projects.json
+.env
+*.env
+
+# Supabase credentials
+.supabase/
+config.toml
+
+# Backup files
+*.sql
+*.dump
+backups/
+
+# Output files
+*.json
+*.csv
+!examples/*.json
+!examples/*.csv
+
+# OS files
+.DS_Store

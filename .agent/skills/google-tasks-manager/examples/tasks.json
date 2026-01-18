@@ -1,0 +1,24 @@
+{
+    "tasks": [
+        {
+            "title": "Morning workout",
+            "notes": "30 minutes cardio + stretching",
+            "due_date": "2026-01-19"
+        },
+        {
+            "title": "Review pull requests",
+            "notes": "Focus on the new feature branch and provide detailed feedback",
+            "due_date": "2026-01-18"
+        },
+        {
+            "title": "Plan weekly meals",
+            "notes": "Create shopping list and meal prep schedule",
+            "due_date": "2026-01-19"
+        },
+        {
+            "title": "Update project documentation",
+            "notes": "Add API examples and troubleshooting guide",
+            "due_date": "2026-01-20"
+        }
+    ]
+}
